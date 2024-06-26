@@ -5,5 +5,5 @@ Este repositorio contiene la evidencia requerida del desarrollo de la tarea:
 - Capturas de la aplicación en funcionamiento 
 - Código fuente de la aplicación 
 
-Integrantes: J Francisco Saldías
+Integrantes: J Francisco Saldías,
              Matías González
