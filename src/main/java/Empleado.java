@@ -14,13 +14,19 @@ public class Empleado {
 
     public void guardarEmpleado(String nombre, String apellido, String telefono, String email) {
         try (Connection conn = conexion.establecerConexion()) {
+            conn.setAutoCommit(false);
+
+            // No es necesario un bloqueo explícito para un INSERT
             String sql = "INSERT INTO empleado (nombre, apellido, telefono, email) VALUES (?, ?, ?, ?)";
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setString(1, nombre);
-            pst.setString(2, apellido);
-            pst.setString(3, telefono);
-            pst.setString(4, email);
-            pst.executeUpdate();
+            try (PreparedStatement pst = conn.prepareStatement(sql)) {
+                pst.setString(1, nombre);
+                pst.setString(2, apellido);
+                pst.setString(3, telefono);
+                pst.setString(4, email);
+                pst.executeUpdate();
+            }
+
+            conn.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -28,14 +34,26 @@ public class Empleado {
 
     public void modificarEmpleado(int id, String nombre, String apellido, String telefono, String email) {
         try (Connection conn = conexion.establecerConexion()) {
+            conn.setAutoCommit(false);
+
+            // Utilizar SELECT FOR UPDATE para bloquear la fila del empleado
+            String lockSql = "SELECT * FROM empleado WHERE id = ? FOR UPDATE";
+            try (PreparedStatement lockPst = conn.prepareStatement(lockSql)) {
+                lockPst.setInt(1, id);
+                lockPst.executeQuery();
+            }
+
             String sql = "UPDATE empleado SET nombre = ?, apellido = ?, telefono = ?, email = ? WHERE id = ?";
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setString(1, nombre);
-            pst.setString(2, apellido);
-            pst.setString(3, telefono);
-            pst.setString(4, email);
-            pst.setInt(5, id);
-            pst.executeUpdate();
+            try (PreparedStatement pst = conn.prepareStatement(sql)) {
+                pst.setString(1, nombre);
+                pst.setString(2, apellido);
+                pst.setString(3, telefono);
+                pst.setString(4, email);
+                pst.setInt(5, id);
+                pst.executeUpdate();
+            }
+
+            conn.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -43,10 +61,22 @@ public class Empleado {
 
     public void eliminarEmpleado(int id) {
         try (Connection conn = conexion.establecerConexion()) {
+            conn.setAutoCommit(false);
+
+            // Utilizar SELECT FOR UPDATE para bloquear la fila del empleado
+            String lockSql = "SELECT * FROM empleado WHERE id = ? FOR UPDATE";
+            try (PreparedStatement lockPst = conn.prepareStatement(lockSql)) {
+                lockPst.setInt(1, id);
+                lockPst.executeQuery();
+            }
+
             String sql = "DELETE FROM empleado WHERE id = ?";
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setInt(1, id);
-            pst.executeUpdate();
+            try (PreparedStatement pst = conn.prepareStatement(sql)) {
+                pst.setInt(1, id);
+                pst.executeUpdate();
+            }
+
+            conn.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }

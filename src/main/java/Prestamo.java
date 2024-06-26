@@ -15,13 +15,25 @@ public class Prestamo {
 
     public void guardarPrestamo(int idEmpleado, int idVehiculo, Date fechaIni, Date fechaDev) {
         try (Connection conn = conexion.establecerConexion()) {
+            conn.setAutoCommit(false);
+
+            // Utilizar SELECT FOR UPDATE para bloquear la fila de vehículo
+            String lockSql = "SELECT * FROM vehiculo WHERE id = ? FOR UPDATE";
+            try (PreparedStatement lockPst = conn.prepareStatement(lockSql)) {
+                lockPst.setInt(1, idVehiculo);
+                lockPst.executeQuery();
+            }
+
             String sql = "INSERT INTO prestamo (id_empleado, id_vehiculo, fecha_ini, fecha_dev) VALUES (?, ?, ?, ?)";
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setInt(1, idEmpleado);
-            pst.setInt(2, idVehiculo);
-            pst.setDate(3, fechaIni);
-            pst.setDate(4, fechaDev);
-            pst.executeUpdate();
+            try (PreparedStatement pst = conn.prepareStatement(sql)) {
+                pst.setInt(1, idEmpleado);
+                pst.setInt(2, idVehiculo);
+                pst.setDate(3, fechaIni);
+                pst.setDate(4, fechaDev);
+                pst.executeUpdate();
+            }
+
+            conn.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -29,14 +41,26 @@ public class Prestamo {
 
     public void modificarPrestamo(int id, int idEmpleado, int idVehiculo, Date fechaIni, Date fechaDev) {
         try (Connection conn = conexion.establecerConexion()) {
+            conn.setAutoCommit(false);
+
+            // Utilizar SELECT FOR UPDATE para bloquear la fila del préstamo
+            String lockSql = "SELECT * FROM prestamo WHERE id = ? FOR UPDATE";
+            try (PreparedStatement lockPst = conn.prepareStatement(lockSql)) {
+                lockPst.setInt(1, id);
+                lockPst.executeQuery();
+            }
+
             String sql = "UPDATE prestamo SET id_empleado = ?, id_vehiculo = ?, fecha_ini = ?, fecha_dev = ? WHERE id = ?";
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setInt(1, idEmpleado);
-            pst.setInt(2, idVehiculo);
-            pst.setDate(3, fechaIni);
-            pst.setDate(4, fechaDev);
-            pst.setInt(5, id);
-            pst.executeUpdate();
+            try (PreparedStatement pst = conn.prepareStatement(sql)) {
+                pst.setInt(1, idEmpleado);
+                pst.setInt(2, idVehiculo);
+                pst.setDate(3, fechaIni);
+                pst.setDate(4, fechaDev);
+                pst.setInt(5, id);
+                pst.executeUpdate();
+            }
+
+            conn.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -44,10 +68,22 @@ public class Prestamo {
 
     public void eliminarPrestamo(int id) {
         try (Connection conn = conexion.establecerConexion()) {
+            conn.setAutoCommit(false);
+
+            // Utilizar SELECT FOR UPDATE para bloquear la fila del préstamo
+            String lockSql = "SELECT * FROM prestamo WHERE id = ? FOR UPDATE";
+            try (PreparedStatement lockPst = conn.prepareStatement(lockSql)) {
+                lockPst.setInt(1, id);
+                lockPst.executeQuery();
+            }
+
             String sql = "DELETE FROM prestamo WHERE id = ?";
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setInt(1, id);
-            pst.executeUpdate();
+            try (PreparedStatement pst = conn.prepareStatement(sql)) {
+                pst.setInt(1, id);
+                pst.executeUpdate();
+            }
+
+            conn.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -65,4 +101,5 @@ public class Prestamo {
         return rs;
     }
 }
+
 
